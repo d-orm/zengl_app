@@ -19,7 +19,8 @@ class RenderObject:
             vert_shader_id: str, 
             frag_shader_id: str, 
             px_pos: list[float], 
-            scale: list[float]=(1.0, 1.0)
+            scale: list[float]=(1.0, 1.0),
+            scrollable: bool=True,
         ):
         self.app = app
         self.groups = groups
@@ -28,6 +29,7 @@ class RenderObject:
         self.frag_shader_id = frag_shader_id
         self.px_pos = pg.Vector2(px_pos)
         self.scale = pg.Vector2(scale)
+        self.scrollable = scrollable
         self.render_pipeline = RenderPipeline(app, self)
         self.state_machine = StateMachine(app, self)
         self.rect = self.render_pipeline.get_rect()

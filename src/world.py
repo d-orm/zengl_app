@@ -20,7 +20,15 @@ class World:
             'default.vert', 
             'default.frag', 
             [0, 0], 
-        )       
+        ) 
+        self.bg1 = RenderObject(
+            app,
+            [self.scene.entities],
+            list(app.screen_size), 
+            'notex.vert', 
+            'notex.frag', 
+            [0, 0], 
+        )                    
         self.player = RenderObject(
             app,
             [self.scene.entities],

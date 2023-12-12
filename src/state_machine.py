@@ -13,6 +13,9 @@ class StateMachine:
         self.animations = self.render_pipeline.animations
 
     def update(self):
+        if not self.animations:
+            return
+        
         moving_left = self.render_obj.dx < 0
         moving_right = self.render_obj.dx > 0
 

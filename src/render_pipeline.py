@@ -20,8 +20,8 @@ class RenderPipeline:
         self.renderer = app.renderer
         self.vert_shader = self.renderer.shaders.programs[render_obj.vert_shader_id]
         self.frag_shader = self.renderer.shaders.programs[render_obj.frag_shader_id]
-        self.animations = Animations(app, self)
-        self.px_size = pg.Vector2(self.animations.frames[0].get_size())
+        self.animations = self.get_animations()
+        self.px_size = self.get_px_size()
         self.aspect_ratio = self.px_size.x / self.px_size.y
         self.gl_size = self.get_gl_size()
         self.gl_pos = self.get_gl_pos()
@@ -33,11 +33,14 @@ class RenderPipeline:
         self.xy_vert_pos = 0
         self.tex_vert_pos = 2
         self.frame_vert_pos = 4
-        self.stride = 5
+        self.stride = 5 if self.texture else 2
         self.resize(*self.get_size_ratio())
 
     def render(self, camera: "Camera"):
-        modified_vertices = camera.apply(self)
+        if self.render_obj.scrollable:
+            modified_vertices = camera.apply(self)
+        else:
+            modified_vertices = self.vertices
         self.vbo.write(modified_vertices.tobytes())        
         self.uniforms.update()
         self.vao.render() 
@@ -46,7 +49,21 @@ class RenderPipeline:
         if self.texture:
             self.animations.animate_frames()
 
+    def get_px_size(self) -> pg.Vector2:
+        if isinstance(self.render_obj.images_id, list):
+            return pg.Vector2(self.render_obj.images_id)
+        else:
+            return pg.Vector2(self.animations.frames[0].get_size())
+        
+    def get_animations(self):
+        if isinstance(self.render_obj.images_id, list):
+            return None
+        return Animations(self.app, self)
+    
     def get_tex_array(self):
+        if isinstance(self.render_obj.images_id, list):
+            return None
+        
         texture = self.renderer.ctx.image(
             (int(self.px_size.x), int(self.px_size.y)), 
             'rgba8unorm', 
@@ -67,16 +84,27 @@ class RenderPipeline:
         y = screen_aspect / self.aspect_ratio if self.aspect_ratio > screen_aspect else 1.0
         w = self.gl_pos.x + self.gl_size.x / 2
         h = -self.gl_pos.y - self.gl_size.y / 2
-        tx, ty = self.animations.x_flip, self.animations.y_flip
-        frame_idx = self.animations.frame_idx
 
-        return np.array([ 
-            -x + w,  y - h,     tx,     ty, frame_idx,
-             x + w,  y - h, not tx,     ty, frame_idx,
-            -x + w, -y - h,     tx, not ty, frame_idx,
-            -x + w, -y - h,     tx, not ty, frame_idx,
-             x + w,  y - h, not tx,     ty, frame_idx,
-             x + w, -y - h, not tx, not ty, frame_idx,
+        if self.texture:
+            tx, ty = self.animations.x_flip, self.animations.y_flip
+            frame_idx = self.animations.frame_idx
+            return np.array([ 
+                -x + w,  y - h,     tx,     ty, frame_idx,
+                 x + w,  y - h, not tx,     ty, frame_idx,
+                -x + w, -y - h,     tx, not ty, frame_idx,
+                -x + w, -y - h,     tx, not ty, frame_idx,
+                 x + w,  y - h, not tx,     ty, frame_idx,
+                 x + w, -y - h, not tx, not ty, frame_idx,
+            ], dtype='f4')
+        
+        else:
+            return np.array([ 
+            -x + w,  y - h,
+             x + w,  y - h,
+            -x + w, -y - h,
+            -x + w, -y - h,
+             x + w,  y - h,
+             x + w, -y - h,
         ], dtype='f4')
                   
     def create_vao(self):
@@ -89,20 +117,18 @@ class RenderPipeline:
         }] if self.texture else []
         
         tex_layout = [{'name': 'Texture', 'binding': 0}] if self.texture else []
-
-        layout = [{'name': 'Common', 'binding': 0}] + tex_layout
-        
-        resources = [{
-            'type': 'uniform_buffer', 
-            'binding': 0, 
-            'buffer': self.uniforms.ubo
-        }] + tex_sampler
+        buffer_format = '2f 2f 1f' if self.texture else '2f'
+        buffer_layout = (0, 1, 2) if self.texture else (0,)
 
         return self.renderer.ctx.pipeline(
             vertex_shader=self.vert_shader,
             fragment_shader=self.frag_shader,
-            layout=layout,
-            resources=resources,
+            layout=[{'name': 'Common', 'binding': 0}] + tex_layout,
+            resources=[{
+                'type': 'uniform_buffer', 
+                'binding': 0, 
+                'buffer': self.uniforms.ubo
+            }] + tex_sampler,
             blend={
                 "enable": True,
                 "src_color": "src_alpha",
@@ -110,8 +136,8 @@ class RenderPipeline:
             },                
             framebuffer=[self.renderer.framebuffer],
             topology='triangles',
-            vertex_buffers=zengl.bind(self.vbo, '2f 2f 1f', 0, 1, 2),
-            vertex_count=self.vbo.size // zengl.calcsize('2f 2f 1f'),
+            vertex_buffers=zengl.bind(self.vbo, buffer_format, *buffer_layout),
+            vertex_count=self.vbo.size // zengl.calcsize(buffer_format),
         )       
 
     def move(self, delta_x: float, delta_y: float):
