@@ -16,26 +16,26 @@ class World:
         self.bg0 = RenderObject(
             app,
             [self.scene.entities],
-            app.screen_size, 
+            'grass_1', 
+            'default.vert', 
+            'default.frag', 
+            [0, 0], 
+        )    
+        self.water = RenderObject(
+            app,
+            [self.scene.entities],
+            app.screen_size/2, 
             'notex.vert', 
-            'flame.frag', 
-            [0, 0],
+            'water.frag', 
+            [110, 330],
             [1, 1],
-        ) 
-        # self.bg1 = RenderObject(
-        #     app,
-        #     [self.scene.entities],
-        #     'grass_1', 
-        #     'default.vert', 
-        #     'default.frag', 
-        #     [0, 0], 
-        # )                    
+        )                         
         self.player = RenderObject(
             app,
             [self.scene.entities],
             'player', 
             'default.vert', 
-            'waving.frag', 
+            'default.frag', 
             [800, 450], 
             [0.5, 0.5],
         )

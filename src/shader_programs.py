@@ -14,7 +14,7 @@ class ShaderPrograms:
             'src/shaders/default.frag',
             'src/shaders/notex.vert',
             'src/shaders/notex.frag',
-            'src/shaders/flame.frag',
+            'src/shaders/water.frag',
             'src/shaders/waving.frag',
         ]
         self.programs = self.load_programs()
@@ -56,7 +56,7 @@ class Uniforms:
             'default.frag': [],
             'notex.frag': ['iTime', 'iResolution', 'iWorldPos'],
             'waving.frag': ['iTime'],
-            'flame.frag': ['iTime', 'iResolution', 'iCameraPos'],
+            'water.frag': ['iTime', 'iResolution', 'iCameraPos'],
         }
 
         self.uniforms = self.get_uniforms()
@@ -104,7 +104,6 @@ class Uniforms:
         return uniforms
 
     def update(self):
-        print(self.app.renderer.camera.position)
         for uniform in self.uniforms.values():
             self.ubo.write(uniform['value'](), offset=uniform['offset'])
 

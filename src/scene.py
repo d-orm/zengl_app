@@ -18,7 +18,7 @@ class Scene:
         for entity in self.entities:
             entity.update()
 
-        # if self.world.player.rect.colliderect(self.world.bg0.rect):
+        # if self.world.player.rect.colliderect(self.world.water.rect):
         #     print('Collision!')
 
     def render(self):
