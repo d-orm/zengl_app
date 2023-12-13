@@ -40,8 +40,8 @@ class RenderObject:
         self.state_machine.update()
         self.render_pipeline.animate()
 
-    def render(self, camera: "Camera"):
-        self.render_pipeline.render(camera)
+    def render(self):
+        self.render_pipeline.render()
 
     def move(self, delta_x: float, delta_y: float):
         self.render_pipeline.move(delta_x, delta_y)

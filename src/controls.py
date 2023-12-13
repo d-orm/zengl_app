@@ -25,7 +25,7 @@ class Controls:
         if self.keys[pg.K_k]:
             dy -= speed
         if dx != 0.0 or dy != 0.0:
-            self.app.curr_scene.camera.move(dx, dy)
+            self.app.renderer.camera.move(dx, dy)
 
     def move_player(self):
         player = self.app.curr_scene.world.player

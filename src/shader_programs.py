@@ -14,6 +14,7 @@ class ShaderPrograms:
             'src/shaders/default.frag',
             'src/shaders/notex.vert',
             'src/shaders/notex.frag',
+            'src/shaders/flame.frag',
             'src/shaders/waving.frag',
         ]
         self.programs = self.load_programs()
@@ -40,33 +41,58 @@ class Uniforms:
                 'value': lambda: np.array(self.render_pipeline.px_size, dtype='f4'), 
                 'glsl_type': 'vec2'
             },
+            'iWorldPos': {
+                'value': lambda: np.array(self.render_pipeline.gl_pos, dtype='f4'), 
+                'glsl_type': 'vec2'
+            },     
+            'iCameraPos': {
+                'value': lambda: np.array(self.app.renderer.camera.position, dtype='f4'), 
+                'glsl_type': 'vec2'
+            },                         
         }       
 
         self.shaders_map = {
+            'default.vert': ['iCameraPos'],
             'default.frag': [],
-            'notex.frag': [],
+            'notex.frag': ['iTime', 'iResolution', 'iWorldPos'],
             'waving.frag': ['iTime'],
+            'flame.frag': ['iTime', 'iResolution', 'iCameraPos'],
         }
 
         self.uniforms = self.get_uniforms()
-        self.ubo = app.renderer.ctx.buffer(size=16 + len(self.uniforms) * 8)
+        self.ubo = app.renderer.ctx.buffer(size=16+self.buffer_size)
 
     def get_uniforms(self):
         uniforms = {}
         includes_string = ""
-        bytes_offset = 0
-        frag_shader_id = self.render_pipeline.render_obj.frag_shader_id
+        offset = 0
         for name, uniform in self.uniforms_map.items():
-            if name not in self.shaders_map[frag_shader_id]:
+            if name not in self.shaders_map[self.render_pipeline.render_obj.frag_shader_id]:
                 continue
+
+            if uniform['glsl_type'] == 'float':
+                align = 4
+            elif uniform['glsl_type'] == 'vec2':
+                align = 8
+            elif uniform['glsl_type'] in ['vec3', 'vec4']:
+                align = 16
+            else:
+                raise ValueError(f"Unknown GLSL type: {uniform['glsl_type']}")
+
+            # Add padding for alignment
+            if offset % align != 0:
+                offset += align - (offset % align)
+
             uniforms[name] = {
                 "value": uniform['value'],
                 "glsl_type": uniform['glsl_type'],
-                "offset": bytes_offset
+                "offset": offset
             }
-            uf_array: np.ndarray = uniform['value']()
-            bytes_offset += uf_array.nbytes
+            uf_array = uniform['value']()
+            offset += uf_array.nbytes
             includes_string += f"{uniform['glsl_type']} {name};\n"
+
+        self.buffer_size = offset
 
         if not uniforms:
             includes_string = "float _pass;"
@@ -78,6 +104,7 @@ class Uniforms:
         return uniforms
 
     def update(self):
+        print(self.app.renderer.camera.position)
         for uniform in self.uniforms.values():
             self.ubo.write(uniform['value'](), offset=uniform['offset'])
 

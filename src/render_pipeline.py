@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 from src.shader_programs import Uniforms
 from src.animations import Animations
+from src.camera import Camera
 
 
 class RenderPipeline:
@@ -20,6 +21,7 @@ class RenderPipeline:
         self.renderer = app.renderer
         self.vert_shader = self.renderer.shaders.programs[render_obj.vert_shader_id]
         self.frag_shader = self.renderer.shaders.programs[render_obj.frag_shader_id]
+        self.camera = app.renderer.camera
         self.animations = self.get_animations()
         self.px_size = self.get_px_size()
         self.aspect_ratio = self.px_size.x / self.px_size.y
@@ -36,9 +38,9 @@ class RenderPipeline:
         self.stride = 5 if self.texture else 2
         self.resize(*self.get_size_ratio())
 
-    def render(self, camera: "Camera"):
+    def render(self):
         if self.render_obj.scrollable:
-            modified_vertices = camera.apply(self)
+            modified_vertices = self.camera.apply(self)
         else:
             modified_vertices = self.vertices
         self.vbo.write(modified_vertices.tobytes())        
@@ -50,18 +52,18 @@ class RenderPipeline:
             self.animations.animate_frames()
 
     def get_px_size(self) -> pg.Vector2:
-        if isinstance(self.render_obj.images_id, list):
+        if isinstance(self.render_obj.images_id, list | pg.Vector2):
             return pg.Vector2(self.render_obj.images_id)
         else:
             return pg.Vector2(self.animations.frames[0].get_size())
         
     def get_animations(self):
-        if isinstance(self.render_obj.images_id, list):
+        if isinstance(self.render_obj.images_id, list | pg.Vector2):
             return None
         return Animations(self.app, self)
     
     def get_tex_array(self):
-        if isinstance(self.render_obj.images_id, list):
+        if isinstance(self.render_obj.images_id, list | pg.Vector2):
             return None
         
         texture = self.renderer.ctx.image(

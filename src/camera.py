@@ -4,12 +4,14 @@ import pygame as pg
 import numpy as np
 
 if TYPE_CHECKING:
+    from src.renderer import Renderer
     from src.render_pipeline import RenderPipeline
 
 
 class Camera:
-    def __init__(self):
-        self.position = pg.Vector2(0, 0)
+    def __init__(self, renderer: "Renderer"):
+        self.renderer = renderer
+        self.position = pg.Vector2(0.0, 0.0)
 
     def move(self, delta_x, delta_y):
         self.position.x += delta_x

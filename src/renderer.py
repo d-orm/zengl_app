@@ -8,6 +8,8 @@ from src.shader_programs import ShaderPrograms
 if TYPE_CHECKING:
     from src.app import App
 
+from src.camera import Camera
+
 
 class Renderer:
     def __init__(self, app: "App"):
@@ -15,6 +17,7 @@ class Renderer:
         self.window_init()
         self.aspect_ratio = app.screen_size[0] / app.screen_size[1]
         self.shaders = ShaderPrograms()
+        self.camera = Camera(self)
         self.ctx = zengl.context()
         self.framebuffer = self.ctx.image(
             (int(app.screen_size.x), int(app.screen_size.y)), 

@@ -12,7 +12,6 @@ class Scene:
     def __init__(self, app: "App"):
         self.app = app
         self.entities: list["RenderObject"] = []
-        self.camera = Camera()
         self.world = World(app, self)
 
     def update(self):
@@ -24,7 +23,7 @@ class Scene:
 
     def render(self):
         for entity in self.entities:
-            entity.render(self.camera)
+            entity.render()
 
     def destroy(self):
         for entity in self.entities:
