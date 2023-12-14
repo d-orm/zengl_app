@@ -5,13 +5,11 @@ import zengl
 import numpy as np
 
 if TYPE_CHECKING:
-    from src.camera import Camera
     from src.app import App
     from src.render_obj import RenderObject
 
 from src.shader_programs import Uniforms
 from src.animations import Animations
-from src.camera import Camera
 
 
 class RenderPipeline:
@@ -39,7 +37,7 @@ class RenderPipeline:
         self.resize(*self.get_size_ratio())
 
     def render(self):
-        if self.render_obj.scrollable:
+        if self.render_obj.scrollable and self.camera.moving:
             modified_vertices = self.camera.apply(self)
         else:
             modified_vertices = self.vertices
@@ -52,18 +50,18 @@ class RenderPipeline:
             self.animations.animate_frames()
 
     def get_px_size(self) -> pg.Vector2:
-        if isinstance(self.render_obj.images_id, list | pg.Vector2):
+        if isinstance(self.render_obj.images_id, list | tuple | pg.Vector2):
             return pg.Vector2(self.render_obj.images_id)
         else:
             return pg.Vector2(self.animations.frames[0].get_size())
         
-    def get_animations(self):
-        if isinstance(self.render_obj.images_id, list | pg.Vector2):
+    def get_animations(self) -> Animations | None:
+        if isinstance(self.render_obj.images_id, list | tuple | pg.Vector2):
             return None
         return Animations(self.app, self)
     
-    def get_tex_array(self):
-        if isinstance(self.render_obj.images_id, list | pg.Vector2):
+    def get_tex_array(self) -> zengl.Image | None:
+        if isinstance(self.render_obj.images_id, list | tuple | pg.Vector2):
             return None
         
         texture = self.renderer.ctx.image(
@@ -79,9 +77,8 @@ class RenderPipeline:
         texture.mipmaps()
         return texture
     
-    def get_vertices(self):
+    def get_vertices(self) -> np.ndarray:
         screen_aspect = self.renderer.aspect_ratio
-
         x = self.aspect_ratio / screen_aspect if self.aspect_ratio < screen_aspect else 1.0
         y = screen_aspect / self.aspect_ratio if self.aspect_ratio > screen_aspect else 1.0
         w = self.gl_pos.x + self.gl_size.x / 2
@@ -109,7 +106,7 @@ class RenderPipeline:
              x + w, -y - h,
         ], dtype='f4')
                   
-    def create_vao(self):
+    def create_vao(self) -> zengl.Pipeline:
         tex_sampler = [{
                     'type': 'sampler', 
                     'binding': 0, 
@@ -125,17 +122,11 @@ class RenderPipeline:
         return self.renderer.ctx.pipeline(
             vertex_shader=self.vert_shader,
             fragment_shader=self.frag_shader,
-            layout=[{'name': 'Common', 'binding': 0}] + tex_layout,
-            resources=[{
-                'type': 'uniform_buffer', 
-                'binding': 0, 
-                'buffer': self.uniforms.ubo
-            }] + tex_sampler,
-            blend={
-                "enable": True,
-                "src_color": "src_alpha",
-                "dst_color": "one_minus_src_alpha",
-            },                
+            layout=[{'name': 'Common', 'binding': 0}
+                ] + tex_layout,
+            resources=[{'type': 'uniform_buffer', 'binding': 0, 'buffer': self.uniforms.ubo}
+                ] + tex_sampler,
+            blend={"enable": True,"src_color": "src_alpha", "dst_color": "one_minus_src_alpha"},                
             framebuffer=[self.renderer.framebuffer],
             topology='triangles',
             vertex_buffers=zengl.bind(self.vbo, buffer_format, *buffer_layout),
@@ -153,31 +144,30 @@ class RenderPipeline:
         for i in range(self.xy_vert_pos, len(self.vertices), self.stride):
             self.vertices[i] = (self.vertices[i] - self.gl_pos.x) * scale_x + self.gl_pos.x
             self.vertices[i + 1] = (self.vertices[i+1] - self.gl_pos.y) * scale_y + self.gl_pos.y
-
         self.gl_size.x *= scale_x
         self.gl_size.y *= scale_y
+        self.px_size.x = self.gl_size.x * self.app.screen_size.x / 2
+        self.px_size.y = self.gl_size.y * -self.app.screen_size.y / 2
 
-    def get_gl_size(self):
-        screen_aspect = self.renderer.aspect_ratio
-
-        if self.aspect_ratio > screen_aspect:
-            return pg.Vector2(1.0, screen_aspect / self.aspect_ratio) * 2
+    def get_gl_size(self) -> pg.Vector2:
+        if self.aspect_ratio > self.renderer.aspect_ratio:
+            return pg.Vector2(1.0, self.renderer.aspect_ratio / self.aspect_ratio) * 2
         else:
-            return pg.Vector2(self.aspect_ratio / screen_aspect, 1.0) * 2  
+            return pg.Vector2(self.aspect_ratio / self.renderer.aspect_ratio, 1.0) * 2  
     
-    def get_gl_pos(self):
+    def get_gl_pos(self) -> pg.Vector2:
         gl_pos_x = (self.render_obj.px_pos.x / self.app.screen_size.x) * 2 - 1
         gl_pos_y = (-self.render_obj.px_pos.y / self.app.screen_size.y) * 2 + 1
         return pg.Vector2(gl_pos_x, gl_pos_y)
 
-    def get_size_ratio(self):
+    def get_size_ratio(self) -> tuple[float, float]:
         scale = max(
             self.render_obj.scale.x * self.px_size.x / self.app.screen_size.x,
             self.render_obj.scale.y * self.px_size.y / self.app.screen_size.y,
         )
         return scale, -scale
         
-    def get_rect(self):
+    def get_rect(self) -> pg.FRect:
         return pg.FRect(*self.gl_pos, *self.gl_size)
     
     def destroy(self):

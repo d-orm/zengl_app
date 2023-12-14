@@ -4,7 +4,6 @@ import pygame as pg
 
 if TYPE_CHECKING:
     from src.app import App
-    from src.camera import Camera
 
 from src.render_pipeline import RenderPipeline
 from src.state_machine import StateMachine

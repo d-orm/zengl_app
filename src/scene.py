@@ -1,11 +1,10 @@
 from typing import TYPE_CHECKING
 
-from src.camera import Camera
-from src.render_obj import RenderObject
 from src.world import World
 
 if TYPE_CHECKING:
     from src.app import App
+    from src.render_obj import RenderObject
 
 
 class Scene:

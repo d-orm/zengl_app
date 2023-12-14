@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-
+import numpy as np
 import pygame as pg
 
 if TYPE_CHECKING:
@@ -56,7 +56,8 @@ class Controls:
         if self.keys[pg.K_s]:
             dy += speed
         if dx != 1.0 or dy != 1.0:
-            self.app.curr_scene.world.player.resize(dx, dy)
+            self.app.curr_scene.world.fire.resize(dx, dy)
+            print(self.app.curr_scene.world.fire.render_pipeline.px_size)
 
     def update(self):
         self.keys = pg.key.get_pressed()

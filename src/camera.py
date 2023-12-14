@@ -12,12 +12,17 @@ class Camera:
     def __init__(self, renderer: "Renderer"):
         self.renderer = renderer
         self.position = pg.Vector2(0.0, 0.0)
+        self.moving = False
 
     def move(self, delta_x, delta_y):
-        self.position.x += delta_x
-        self.position.y += delta_y
+        if delta_x != 0 or delta_y != 0:
+            self.moving = True
+            self.position.x += delta_x
+            self.position.y += delta_y
+        else:   
+            self.moving = False
 
-    def apply(self, render_pipeline: "RenderPipeline"):
+    def apply(self, render_pipeline: "RenderPipeline") -> np.ndarray:
         modified_vertices = np.array(render_pipeline.vertices)
         
         for i in range(0, len(modified_vertices), render_pipeline.stride):
@@ -26,4 +31,3 @@ class Camera:
 
         return modified_vertices
         
- 

@@ -19,17 +19,33 @@ class World:
             'grass_1', 
             'default.vert', 
             'default.frag', 
-            [0, 0], 
+            [0.0, 0.0], 
         )    
         self.water = RenderObject(
             app,
             [self.scene.entities],
             app.screen_size/2, 
             'notex.vert', 
-            'water.frag', 
-            [110, 330],
+            'water2.frag', 
+            [1500, 330],
             [1, 1],
-        )                         
+        )
+        self.fire = RenderObject(
+            app,
+            [self.scene.entities],
+            app.screen_size, 
+            'notex.vert', 
+            'flame.frag', 
+            [0, 0],
+        )   
+        # self.orb = RenderObject(
+        #     app,
+        #     [self.scene.entities],
+        #     app.screen_size, 
+        #     'notex.vert', 
+        #     'electric_orb.frag', 
+        #     [0, 0],
+        # )                                                       
         self.player = RenderObject(
             app,
             [self.scene.entities],

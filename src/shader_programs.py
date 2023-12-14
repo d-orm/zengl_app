@@ -15,7 +15,10 @@ class ShaderPrograms:
             'src/shaders/notex.vert',
             'src/shaders/notex.frag',
             'src/shaders/water.frag',
+            'src/shaders/water2.frag',
+            'src/shaders/flame.frag',
             'src/shaders/waving.frag',
+            'src/shaders/electric_orb.frag',
         ]
         self.programs = self.load_programs()
 
@@ -45,6 +48,10 @@ class Uniforms:
                 'value': lambda: np.array(self.render_pipeline.gl_pos, dtype='f4'), 
                 'glsl_type': 'vec2'
             },     
+            'iScreenSize': {
+                'value': lambda: np.array(self.app.screen_size, dtype='f4'), 
+                'glsl_type': 'vec2'
+            },               
             'iCameraPos': {
                 'value': lambda: np.array(self.app.renderer.camera.position, dtype='f4'), 
                 'glsl_type': 'vec2'
@@ -56,7 +63,10 @@ class Uniforms:
             'default.frag': [],
             'notex.frag': ['iTime', 'iResolution', 'iWorldPos'],
             'waving.frag': ['iTime'],
-            'water.frag': ['iTime', 'iResolution', 'iCameraPos'],
+            'water.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize'],
+            'water2.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
+            'flame.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
+            'electric_orb.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize'],
         }
 
         self.uniforms = self.get_uniforms()
