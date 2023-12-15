@@ -10,9 +10,17 @@ class Controls:
     def __init__(self, app: "App"):
         self.app = app
         self.keys = pg.key.get_pressed()
-        self.mouse_pos = pg.mouse.get_pos()
+        self.px_mouse_pos = pg.mouse.get_pos()
         self.mouse_buttons = pg.mouse.get_pressed()
 
+    def update(self):
+        self.keys = pg.key.get_pressed()
+        self.px_mouse_pos = pg.mouse.get_pos()
+        self.mouse_buttons = pg.mouse.get_pressed()
+        self.move_camera()
+        self.move_player()
+        self.resize_player()
+    
     def move_camera(self):
         speed = 1.0 * self.app.dt
         dx, dy = 0.0, 0.0
@@ -28,7 +36,7 @@ class Controls:
             self.app.renderer.camera.move(dx, dy)
 
     def move_player(self):
-        player = self.app.curr_scene.world.water
+        player = self.app.curr_scene.world.player
         player.dx, player.dy = 0, 0
         speed = 1.0 * self.app.dt
 
@@ -56,13 +64,5 @@ class Controls:
         if self.keys[pg.K_s]:
             dy += speed
         if dx != 1.0 or dy != 1.0:
-            self.app.curr_scene.world.fire.resize(dx, dy)
-
-    def update(self):
-        self.keys = pg.key.get_pressed()
-        self.mouse_pos = pg.mouse.get_pos()
-        self.mouse_buttons = pg.mouse.get_pressed()
-        self.move_camera()
-        self.move_player()
-        self.resize_player()
+            self.app.curr_scene.world.water.resize(dx, dy)
 

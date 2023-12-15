@@ -17,8 +17,8 @@ class RenderObject:
             images_id: str, 
             vert_shader_id: str, 
             frag_shader_id: str, 
-            px_pos: list[float], 
-            scale: list[float]=(1.0, 1.0),
+            px_pos: list[int], 
+            scale: list[float]=[1.0, 1.0],
             scrollable: bool=True,
         ):
         self.app = app
@@ -31,7 +31,7 @@ class RenderObject:
         self.scrollable = scrollable
         self.render_pipeline = RenderPipeline(app, self)
         self.state_machine = StateMachine(app, self)
-        self.rect = self.render_pipeline.get_rect()
+        self.rect = self.render_pipeline.get_px_rect()
         self.dx, self.dy = 0.0, 0.0
         self.add_to_groups()
 
@@ -51,8 +51,8 @@ class RenderObject:
         self.update_rect()
 
     def update_rect(self):
-        self.rect.topleft = self.render_pipeline.gl_pos
-        self.rect.size = self.render_pipeline.gl_size
+        self.rect.topleft = self.px_pos
+        self.rect.size = self.render_pipeline.px_size
 
     def add_to_groups(self):
         for group in self.groups:

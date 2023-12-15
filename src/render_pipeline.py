@@ -139,6 +139,8 @@ class RenderPipeline:
             self.vertices[i + 1] += delta_y
         self.gl_pos.x = self.vertices[0]
         self.gl_pos.y = self.vertices[1] - self.gl_size.y
+        self.render_obj.px_pos.x = (self.gl_pos.x + 1) * self.app.screen_size.x / 2
+        self.render_obj.px_pos.y = (-self.gl_pos.y + 1) * self.app.screen_size.y / 2
 
     def resize(self, scale_x: float, scale_y: float):
         for i in range(self.xy_vert_pos, len(self.vertices), self.stride):
@@ -167,8 +169,8 @@ class RenderPipeline:
         )
         return scale, -scale
         
-    def get_rect(self) -> pg.FRect:
-        return pg.FRect(*self.gl_pos, *self.gl_size)
+    def get_px_rect(self) -> pg.Rect:
+        return pg.Rect(*self.render_obj.px_pos, *self.px_size)
     
     def destroy(self):
         for resource in [self.vao, self.vbo, self.uniforms.ubo, self.texture]:

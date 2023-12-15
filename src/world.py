@@ -20,7 +20,7 @@ class World:
             'default.vert', 
             'default.frag', 
             [0.0, 0.0], 
-        )    
+        )
         self.water = RenderObject(
             app,
             [self.scene.entities],
@@ -37,7 +37,7 @@ class World:
             'notex.vert', 
             'flame.frag', 
             [0, 0],
-        )   
+        )
         self.orb = RenderObject(
             app,
             [self.scene.entities],
@@ -45,7 +45,15 @@ class World:
             'notex.vert', 
             'electric_orb.frag', 
             [400, 600],
-        )                                                       
+        )
+        self.smoke = RenderObject(
+            app,
+            [self.scene.entities],
+            app.screen_size/2, 
+            'notex.vert', 
+            'smoke.frag', 
+            [600, 600],
+        )
         self.player = RenderObject(
             app,
             [self.scene.entities],
@@ -55,7 +63,3 @@ class World:
             [800, 450], 
             [0.5, 0.5],
         )
-
-            
-
-

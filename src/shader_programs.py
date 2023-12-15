@@ -19,6 +19,7 @@ class ShaderPrograms:
             'src/shaders/flame.frag',
             'src/shaders/waving.frag',
             'src/shaders/electric_orb.frag',
+            'src/shaders/smoke.frag',
         ]
         self.programs = self.load_programs()
 
@@ -66,6 +67,7 @@ class Uniforms:
             'water2.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
             'flame.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
             'electric_orb.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
+            'smoke.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
         }
 
         self.uniforms = self.get_uniforms()
@@ -118,9 +120,11 @@ class Uniforms:
             self.ubo.write(uniform['value'](), offset=uniform['offset'])
 
     def scale_and_scroll_include(self):
+        add_camera_x = "iCameraPos.x" if self.render_pipeline.render_obj.scrollable else "0"
+        add_camera_y = "iCameraPos.y" if self.render_pipeline.render_obj.scrollable else "0"
         self.app.renderer.ctx.includes['fragScaleAndScroll'] = f"""
         vec2 fragScaleAndScroll() {{
-            vec2 uv = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 + iCameraPos.y);
+            vec2 uv = vec2(fragCoord.x + 1 + {add_camera_x}, fragCoord.y + 1 + {add_camera_y});
             uv.y = uv.y - iResolution.y / iScreenSize.y;
             uv.x = uv.x - iResolution.x / iScreenSize.x;
             uv.x *= iScreenSize.x / iResolution.x;

@@ -15,6 +15,11 @@ class StateMachine:
     def update(self):
         if not self.animations:
             return
+        self.update_player_state()
+        
+    def update_player_state(self):
+        if not self.render_obj.images_id == 'player':
+            return
         
         moving_left = self.render_obj.dx < 0
         moving_right = self.render_obj.dx > 0
