@@ -1,10 +1,10 @@
 #version 330
 
-#include "uniforms"
 out vec4 fragColor;
 in vec2 fragCoord;
 
-vec2 camOffsetFragCoord = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 + iCameraPos.y) - 1.0;
+#include "uniforms"
+#include "fragScaleAndScroll"
 
 // Redefine below to see the tiling...
 //#define SHOW_TILING
@@ -14,11 +14,10 @@ vec2 camOffsetFragCoord = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 +
 
 void main() 
 {
-	float time = iTime * .5+23.0;
-    // uv should be the 0-1 uv of texture...
-	vec2 uv = camOffsetFragCoord.xy;
-    uv.x *= iResolution.x / iResolution.y;
+    vec2 uv = fragScaleAndScroll();
     
+	float time = iTime * .5+23.0;
+
 #ifdef SHOW_TILING
 	vec2 p = mod(uv*TAU*2.0, TAU)-250.0;
 #else

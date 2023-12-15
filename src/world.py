@@ -38,14 +38,14 @@ class World:
             'flame.frag', 
             [0, 0],
         )   
-        # self.orb = RenderObject(
-        #     app,
-        #     [self.scene.entities],
-        #     app.screen_size, 
-        #     'notex.vert', 
-        #     'electric_orb.frag', 
-        #     [0, 0],
-        # )                                                       
+        self.orb = RenderObject(
+            app,
+            [self.scene.entities],
+            app.screen_size/2, 
+            'notex.vert', 
+            'electric_orb.frag', 
+            [400, 600],
+        )                                                       
         self.player = RenderObject(
             app,
             [self.scene.entities],

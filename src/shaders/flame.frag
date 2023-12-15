@@ -1,12 +1,10 @@
 #version 330
 
-#include "uniforms"
-
-// Vertex attributes
 in vec2 fragCoord;
 out vec4 fragColor;
 
-vec2 camOffsetFragCoord = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 + iCameraPos.y);
+#include "uniforms"
+#include "fragScaleAndScroll"
 
 float random (in vec2 p) { 
     vec3 p3  = fract(vec3(p.xyx) * .1031);
@@ -60,12 +58,7 @@ float flare(in float angle,in float alpha,in float time){
 #define BORDER 0.21
 
 void main() {
-    vec2 uv = camOffsetFragCoord.xy;
-    uv.y = uv.y - iResolution.y / iScreenSize.y;
-    uv.x = uv.x - iResolution.x / iScreenSize.x;
-    uv.x *= iScreenSize.x / iResolution.x;
-    uv.y *= iScreenSize.y / iResolution.y;
-    uv.y += 2.0 - (iScreenSize.y / iResolution.y) * 2.0;
+    vec2 uv = fragScaleAndScroll();
     
 	float f = .0;
     float f2 = .0;

@@ -28,7 +28,7 @@ class Controls:
             self.app.renderer.camera.move(dx, dy)
 
     def move_player(self):
-        player = self.app.curr_scene.world.player
+        player = self.app.curr_scene.world.water
         player.dx, player.dy = 0, 0
         speed = 1.0 * self.app.dt
 
@@ -57,7 +57,6 @@ class Controls:
             dy += speed
         if dx != 1.0 or dy != 1.0:
             self.app.curr_scene.world.fire.resize(dx, dy)
-            print(self.app.curr_scene.world.fire.render_pipeline.px_size)
 
     def update(self):
         self.keys = pg.key.get_pressed()

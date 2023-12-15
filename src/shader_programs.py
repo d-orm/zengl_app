@@ -59,18 +59,18 @@ class Uniforms:
         }       
 
         self.shaders_map = {
-            'default.vert': ['iCameraPos'],
             'default.frag': [],
             'notex.frag': ['iTime', 'iResolution', 'iWorldPos'],
             'waving.frag': ['iTime'],
             'water.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize'],
             'water2.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
             'flame.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
-            'electric_orb.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize'],
+            'electric_orb.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
         }
 
         self.uniforms = self.get_uniforms()
         self.ubo = app.renderer.ctx.buffer(size=16+self.buffer_size)
+        self.scale_and_scroll_include()
 
     def get_uniforms(self):
         uniforms = {}
@@ -117,3 +117,15 @@ class Uniforms:
         for uniform in self.uniforms.values():
             self.ubo.write(uniform['value'](), offset=uniform['offset'])
 
+    def scale_and_scroll_include(self):
+        self.app.renderer.ctx.includes['fragScaleAndScroll'] = f"""
+        vec2 fragScaleAndScroll() {{
+            vec2 uv = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 + iCameraPos.y);
+            uv.y = uv.y - iResolution.y / iScreenSize.y;
+            uv.x = uv.x - iResolution.x / iScreenSize.x;
+            uv.x *= iScreenSize.x / iResolution.x;
+            uv.y *= iScreenSize.y / iResolution.y;
+            uv.y += 2.0 - (iScreenSize.y / iResolution.y) * 2.0;
+            return uv;
+        }}
+        """

@@ -51,6 +51,6 @@ docs/_build/
 
 # profiling
 profiler_results/calls.txt
-profiler_results/cumalative.txt
+profiler_results/cumulative.txt
 profiler_results/output.dat
 profiler_results/time.txt

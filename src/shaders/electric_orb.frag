@@ -1,10 +1,10 @@
 #version 330
 
-#include "uniforms"
 out vec4 fragColor;
 in vec2 fragCoord;
 
-vec2 camOffsetFragCoord = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 + iCameraPos.y) / (iResolution.y / iScreenSize.y) / iResolution;
+#include "uniforms"
+#include "fragScaleAndScroll"
 
 #define nCos(x)		(cos(x)+1.0)*0.5
 #define bell(x)		(1.0/((x*x+1.0)*(x*x+1.0)))
@@ -12,7 +12,7 @@ vec2 camOffsetFragCoord = vec2(fragCoord.x + 1 + iCameraPos.x, fragCoord.y + 1 +
 #define rayGen(x) 	((abs((fract(x)-0.5)*2.0)-0.5)*2.0)
 
 
-#define ITERATIONS 6
+#define ITERATIONS 16
 
 //#define USE_BLUE
 #define USE_RED
@@ -24,14 +24,12 @@ float rand(in int x) {
 void main()
 {
     // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = camOffsetFragCoord;
-    uv.x *= iResolution.x/iResolution.y;
-    uv = uv - 1.0;
+    vec2 uv = fragScaleAndScroll();
     
     // Ray
-    float speed     = 1.5;
+    float speed     = 3.5;
     float amplitude = 0.10;
-    float freq      = 1.0;
+    float freq      = 2.0;
     float parity    = 0.0;
     float dir       = 1.0;
     
