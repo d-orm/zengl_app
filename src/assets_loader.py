@@ -36,7 +36,7 @@ class Assets:
 
     def create_font(self):
         pg.font.init()
-        font = pg.font.SysFont('Roboto', 32)
+        font = pg.font.Font('assets/RobotoMono-Bold.ttf', 32)
         surf_size = font.size('A')
         chars = {"Idle": [pg.Surface(surf_size, pg.SRCALPHA)]}
 

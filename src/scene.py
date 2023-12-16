@@ -44,8 +44,8 @@ class Scene:
             else:
                 button.state_machine.set_state('Idle')
 
-        if self.world.player.rect.colliderect(self.world.water.rect):
-            print('Collision!')
+        # if self.world.player.rect.colliderect(self.world.water.rect):
+        #     print('Collision!')
 
         self.fps_text.update(f'FPS:{self.app.clock.get_fps():.0f}')
         

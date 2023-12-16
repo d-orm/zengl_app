@@ -123,9 +123,9 @@ class RenderPipeline:
             vertex_shader=self.vert_shader,
             fragment_shader=self.frag_shader,
             layout=[{'name': 'Common', 'binding': 0}
-                ] + tex_layout,
+                ] if self.uniforms.uniforms else [] + tex_layout,
             resources=[{'type': 'uniform_buffer', 'binding': 0, 'buffer': self.uniforms.ubo}
-                ] + tex_sampler,
+                ] if self.uniforms.uniforms else []  + tex_sampler,
             blend={"enable": True,"src_color": "src_alpha", "dst_color": "one_minus_src_alpha"},                
             framebuffer=[self.renderer.framebuffer],
             topology='triangles',

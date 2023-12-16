@@ -40,3 +40,4 @@ class Renderer:
         self.framebuffer.blit()
         self.ctx.end_frame()
         pg.display.flip()
+

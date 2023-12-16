@@ -106,12 +106,10 @@ class Uniforms:
 
         self.buffer_size = offset
 
-        if not uniforms:
-            includes_string = "float _pass;"
-
-        self.app.renderer.ctx.includes['uniforms'] = f'''
-            layout (std140) uniform Common {{{includes_string}}};
-        '''
+        if uniforms:
+            self.app.renderer.ctx.includes['uniforms'] = f'''
+                layout (std140) uniform Common {{{includes_string}}};
+            '''
             
         return uniforms
 
