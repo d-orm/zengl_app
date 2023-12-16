@@ -1,7 +1,7 @@
 import os
+from string import printable
 
 import pygame as pg
-
 
 class Assets:
     def __init__(self):
@@ -21,9 +21,10 @@ class Assets:
                     ]
             },
             "button": {
-                "Idle": [self.create_button_image((200, 50), (255, 255, 255), (0, 0, 0), 3, 10)],
-                "Hover": [self.create_button_image((200, 50), (255, 0, 0), (0, 0, 0), 3, 10)],
-            }
+                "Idle": [self.create_button_image((200, 50), (255, 255, 255, 150), (0, 0, 0), 3, 10)],
+                "Hover": [self.create_button_image((200, 50), (255, 0, 0, 150), (0, 0, 0), 3, 10)],
+            },
+            "font_32": self.create_font(),
         }
     
     def create_button_image(self, size, bg_color, border_color, border_width, border_radius):
@@ -32,3 +33,16 @@ class Assets:
         pg.draw.rect(button, bg_color, button_rect, border_radius=border_radius)
         pg.draw.rect(button, border_color, button_rect, border_width, border_radius=border_radius)
         return button
+
+    def create_font(self):
+        pg.font.init()
+        font = pg.font.SysFont('Roboto', 32)
+        surf_size = font.size('A')
+        chars = {"Idle": [pg.Surface(surf_size, pg.SRCALPHA)]}
+
+        for char in printable:
+            surf = pg.Surface(surf_size, pg.SRCALPHA)
+            surf.blit(font.render(char, True, (225, 0, 0)), (0, 0))
+            chars[char] = [surf]
+
+        return chars

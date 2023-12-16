@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from src.render_obj import RenderObject
 
 from src.render_obj import RenderObject
+from src.font_obj import FontObject
 
 
 class Scene:
@@ -21,28 +22,17 @@ class Scene:
                 'button', 
                 'default.vert', 
                 'default.frag', 
-                [20, 20], 
+                [20, 20 + 75+i*75], 
                 scrollable=False,
-            ),
-            RenderObject(
-                app,
-                [self.entities],
-                'button', 
-                'default.vert', 
-                'default.frag', 
-                [20, 100], 
-                scrollable=False,
-            ),
-            RenderObject(
-                app,
-                [self.entities],
-                'button', 
-                'default.vert', 
-                'default.frag', 
-                [20, 180], 
-                scrollable=False,
-            ),
+            ) for i in range(10)
         ]
+        self.fps_text = FontObject(
+            app, 
+            [self.entities], 
+            'FPS:000',
+            'font_32', 
+            [10, 10]
+        )            
 
     def update(self):
         for entity in self.entities:
@@ -56,6 +46,9 @@ class Scene:
 
         if self.world.player.rect.colliderect(self.world.water.rect):
             print('Collision!')
+
+        self.fps_text.update(f'FPS:{self.app.clock.get_fps():.0f}')
+        
 
     def render(self):
         for entity in self.entities:

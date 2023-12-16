@@ -35,7 +35,6 @@ class App:
             self.renderer.render()
             self.dt = self.clock.tick() / 1000
             self.elapsed_time = pg.time.get_ticks() / 1000
-            pg.display.set_caption(f'FPS: {self.clock.get_fps():.0f}')
 
     def exit_event(self, e: pg.Event):
         esc_key = e.type == pg.KEYDOWN and e.key == pg.K_ESCAPE

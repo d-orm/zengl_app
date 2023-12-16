@@ -18,7 +18,7 @@ class ShaderPrograms:
             'src/shaders/water2.frag',
             'src/shaders/flame.frag',
             'src/shaders/waving.frag',
-            'src/shaders/electric_orb.frag',
+            'src/shaders/electric_bolt.frag',
             'src/shaders/smoke.frag',
         ]
         self.programs = self.load_programs()
@@ -66,7 +66,7 @@ class Uniforms:
             'water.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize'],
             'water2.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
             'flame.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
-            'electric_orb.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
+            'electric_bolt.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
             'smoke.frag': ['iTime', 'iResolution', 'iCameraPos', 'iScreenSize', 'iWorldPos'],
         }
 

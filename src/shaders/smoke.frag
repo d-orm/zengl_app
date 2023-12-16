@@ -6,173 +6,117 @@ out vec4 fragColor;
 #include "uniforms"
 #include "fragScaleAndScroll"
 
-// Gardner textured ellipsoids - https://www.cs.drexel.edu/~david/Classes/Papers/p297-gardner.pdf + bib
+vec3 ellipsoidRadius = vec3(2., 4., 2.);      // Ellipsoid radius
+vec3 lightSourceDirection = normalize(vec3(-.4, 0., 1.));  // Light source direction
+#define AMBIENT_LUMINOSITY .4                 // Ambient luminosity
 
-vec3 R = vec3(2.,4.,2.);              // ellipsoid radius
-vec3 L = normalize(vec3(-.4,0.,1.));  // light source
-#define AMBIENT .4					  // ambient luminosity
-
-#define ANIM true
+#define ANIMATION_ENABLED true
 #define PI 3.1415927
-vec4 FragColor;
+vec4 accumulatedColor;
 
+mat3 rotationMatrix = mat3( 0.00,  0.80,  0.60,
+                            -0.80,  0.36, -0.48,
+                            -0.60, -0.48,  0.64 );
 
-// --- noise functions from https://www.shadertoy.com/view/XslGRr
-// Created by inigo quilez - iq/2013
-// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-
-mat3 m = mat3( 0.00,  0.80,  0.60,
-              -0.80,  0.36, -0.48,
-              -0.60, -0.48,  0.64 );
-
-float hash( float n )    // in [0,1]
-{
-    return fract(sin(n)*43758.5453);
+float hash(float n) {
+    return fract(sin(n) * 43758.5453);
 }
 
-float noise( in vec3 x ) // in [0,1]
-{
+float noise(in vec3 x) {
     vec3 p = floor(x);
     vec3 f = fract(x);
-
-    f = f*f*(3.0-2.0*f);
-
-    float n = p.x + p.y*57.0 + 113.0*p.z;
-
-    float res = mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
-                        mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y),
-                    mix(mix( hash(n+113.0), hash(n+114.0),f.x),
-                        mix( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
-    return res;
+    f = f * f * (3.0 - 2.0 * f);
+    float n = p.x + p.y * 57.0 + 113.0 * p.z;
+    return mix(mix(mix(hash(n + 0.0), hash(n + 1.0), f.x),
+                   mix(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
+               mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                   mix(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
 }
 
-float fbm( vec3 p )    // in [0,1]
-{
-	if (ANIM) p += iTime;
-    float f;
-    f  = 0.5000*noise( p ); p = m*p*2.02;
-    f += 0.2500*noise( p ); p = m*p*2.03;
-    f += 0.1250*noise( p ); p = m*p*2.01;
-    f += 0.0625*noise( p );
-    return f;
-}
-// --- End of Created by inigo quilez
-
-float snoise( in vec3 x ) // in [-1,1]
-{ return 2.*noise(x)-1.; }
-
-float sfbm( vec3 p )      // in [-1,1]
-{
-	if (ANIM) p += iTime;
-    float f;
-    f  = 0.5000*snoise( p ); p = m*p*2.02;
-    f += 0.2500*snoise( p ); p = m*p*2.03;
-    f += 0.1250*snoise( p ); p = m*p*2.01;
-    f += 0.0625*snoise( p );
+float fractalBrownianMotion(vec3 p) {
+    if (ANIMATION_ENABLED) p += iTime;
+    float f = 0.5000 * noise(p); p = rotationMatrix * p * 2.02;
+    f += 0.2500 * noise(p); p = rotationMatrix * p * 2.03;
+    f += 0.1250 * noise(p); p = rotationMatrix * p * 2.01;
+    f += 0.0625 * noise(p);
     return f;
 }
 
-
-
-// --- view matrix when looking T from O with [-1,1]x[-1,1] screen at dist d
-
-
-mat3 lookat(vec3 O, vec3 T, float d) {
-	mat3 M;
-	vec3 OT = normalize(T-O);
-	M[0] = OT;
-	M[2] = normalize(vec3(0.,0.,1.)-OT.z*OT)/d;
-	M[1] = cross(M[2],OT);
-	return M;
+float signedNoise(in vec3 x) {
+    return 2.0 * noise(x) - 1.0;
 }
 
-// --- ray -  ellipsoid intersection
-// if true, return P,N and thickness l
-
-bool intersect_ellipsoid(vec3 O, vec3 D, out vec3 P, out vec3 N, out float l) {
-	vec3 OR = O/R, DR = D/R; // to space where ellipsoid is a sphere 
-		// P=O+tD & |P|=1 -> solve t in O^2 +2(O.D)t + D^2.t^2 = 1
-	float OD = dot(OR,DR), OO=dot(OR,OR), DD=dot(DR,DR);
-	float d = OD*OD - (OO-1.)*DD;
-	
-	if (!((d >=0.)&&(OD<0.)&&(OO>1.))) return false;
-	// ray intersects the ellipsoid (and not in our back)
-	// note that t>0 <=> -OD>0 &  OD^2 > OD^ -(OO-1.)*DD -> |O|>1
-		
-	float t = (-OD-sqrt(d))/DD;
-	// return intersection point, normal and thickness
-	P = O+t*D;
-	N=normalize(P/(R*R));
-	l = 2.*sqrt(d)/DD;
-
-	return true;
+float signedFractalBrownianMotion(vec3 p) {
+    if (ANIMATION_ENABLED) p += iTime;
+    float f = 0.5000 * signedNoise(p); p = rotationMatrix * p * 2.02;
+    f += 0.2500 * signedNoise(p); p = rotationMatrix * p * 2.03;
+    f += 0.1250 * signedNoise(p); p = rotationMatrix * p * 2.01;
+    f += 0.0625 * signedNoise(p);
+    return f;
 }
 
-// --- Gardner textured ellipsoids (sort of)
-
-// 's' index corresponds to Garner faked silhouette
-// 'i' index corresponds to interior term faked by mid-surface
-
-float ks,ps, ki,pi;  // smoothness/thichness parameters
-
-float l;
-void draw_obj(vec3 O, mat3 M, vec2 pos, int mode) {
-	vec3 D = normalize(M*vec3(1.,pos));		// ray
-	
-	vec3 P,N; 
-	if (! intersect_ellipsoid(O,D, P,N,l)) return;
-	
-	vec3 Pm = P+.5*l*D,                		// .5: deepest point inside cloud. 
-		 Nm = normalize(Pm/(R*R)),     		// it's normal
-	     Nn = normalize(P/R);
-	float nl = clamp( dot(N,L),0.,1.), 		// ratio of light-facing (for lighting)
-		  nd = clamp(-dot(Nn,D),0.,1.); 	// ratio of camera-facing (for silhouette)
-            // try 1.
-
-	float ns = fbm(P), ni = fbm(Pm+10.);
-	float A, l0 = 3.;
-	//l += l*(l/l0-1.)/(1.+l*l/(l0*l0));     // optical depth modified at silhouette
-	l = clamp(l-6.*ni,0.,1e10);
-	float As = pow(ks*nd, ps), 			 	 // silhouette
-		  Ai = 1.-pow(.7,pi*l);              // interior
-
-
-	As =clamp(As-ns,0.,1.)*2.; // As = 2.*pow(As ,.6);
-	if (mode==2) 
-		A = 1.- (1.-As)*(1.-Ai);  			// mul Ti and Ts
-	else
-		A = (mode==0) ? Ai : As; 
-	A = clamp(A,0.,1.); 
-	nl = .8*( nl + ((mode==0) ? fbm(Pm-10.) : fbm(P+10.) ));
-
-	#if 0 // noise bump
-	N = normalize(N -.1*(dFdx(A)*M[1]+dFdy(A)*M[2])*iResolution.y); 
-	nl = clamp( dot(N,L),0.,1.);
-#endif
-	
-	vec4 col = vec4(mix(nl,1.,AMBIENT));
-	FragColor = mix(FragColor,col,A);
+mat3 lookAt(vec3 origin, vec3 target, float distance) {
+    vec3 direction = normalize(target - origin);
+    mat3 matrix;
+    matrix[0] = direction;
+    matrix[2] = normalize(vec3(0.0, 0.0, 1.0) - direction.z * direction) / distance;
+    matrix[1] = cross(matrix[2], direction);
+    return matrix;
 }
 
-// === main =============================================
+bool intersectEllipsoid(vec3 origin, vec3 rayDirection, out vec3 intersectionPoint, out vec3 normal, out float thickness) {
+    vec3 scaledOrigin = origin / ellipsoidRadius, scaledDirection = rayDirection / ellipsoidRadius;
+    float dotProductOriginDirection = dot(scaledOrigin, scaledDirection), originSquared = dot(scaledOrigin, scaledOrigin), directionSquared = dot(scaledDirection, scaledDirection);
+    float discriminant = dotProductOriginDirection * dotProductOriginDirection - (originSquared - 1.0) * directionSquared;
+    
+    if (!(discriminant >= 0.0 && dotProductOriginDirection < 0.0 && originSquared > 1.0)) return false;
+    
+    float intersectionDistance = (-dotProductOriginDirection - sqrt(discriminant)) / directionSquared;
+    intersectionPoint = origin + intersectionDistance * rayDirection;
+    normal = normalize(intersectionPoint / (ellipsoidRadius * ellipsoidRadius));
+    thickness = 2.0 * sqrt(discriminant) / directionSquared;
+    return true;
+}
+
+float silhouetteSmoothness, silhouettePower, interiorIntensity, interiorPower;
+
+void drawObject(vec3 cameraPosition, mat3 viewMatrix, vec2 screenPosition) {
+    vec3 rayDirection = normalize(viewMatrix * vec3(1.0, screenPosition));
+    
+    vec3 intersectionPoint, normal;
+    float thickness;
+    if (!intersectEllipsoid(cameraPosition, rayDirection, intersectionPoint, normal, thickness)) return;
+    
+    vec3 midPoint = intersectionPoint + 0.5 * thickness * rayDirection;
+    vec3 midPointNormal = normalize(midPoint / (ellipsoidRadius * ellipsoidRadius));
+    vec3 normalizedIntersection = normalize(intersectionPoint / ellipsoidRadius);
+    
+    float lightFacingRatio = clamp(dot(normal, lightSourceDirection), 0.0, 1.0);
+    float cameraFacingRatio = clamp(-dot(normalizedIntersection, rayDirection), 0.0, 1.0);
+
+    float surfaceNoise = fractalBrownianMotion(intersectionPoint), interiorNoise = fractalBrownianMotion(midPoint + 10.0);
+    thickness = clamp(thickness - 6.0 * interiorNoise, 0.0, 1e10);
+    
+    float silhouetteStrength = pow(silhouetteSmoothness * cameraFacingRatio, silhouettePower);
+    float interiorStrength = 1.0 - pow(0.7, interiorPower * thickness);
+    
+    silhouetteStrength = clamp(silhouetteStrength - surfaceNoise, 0.0, 1.0) * 2.0;
+    float alpha = 1.0 - (1.0 - silhouetteStrength) * (1.0 - interiorStrength);
+    alpha = clamp(alpha, 0.0, 1.0);
+    lightFacingRatio = 0.8 * (lightFacingRatio + fractalBrownianMotion(midPoint - 10.0));
+    
+    vec4 color = vec4(mix(lightFacingRatio, 1.0, AMBIENT_LUMINOSITY));
+    accumulatedColor = mix(accumulatedColor, color, alpha);
+}
 
 void main() {
-	float t = iTime;
     vec2 uv = fragScaleAndScroll();
-	float z = .2;
-	ks = 1., ps = 8., ki, pi;
-	ks = 1.; ps = 3.;   ki = .9; pi = 3.;
-	
-    t = -PI/2.;
-    z = -PI/2.;
-	vec3 O = vec3(-15.*cos(t)*cos(z),15.*sin(t)*cos(z),15.*sin(z));	// camera
-	float compas = t-.2*uv.x; vec2 dir = vec2(cos(compas),sin(compas));
-
-	mat3 M = lookat(O,vec3(0.),5.); 
-	vec2 dx = vec2(1.,0.);
-	
-		draw_obj(O,M, 1.5*(uv+dx), 0);	
-		draw_obj(O,M, 1.5*(uv-dx), 1);	
+    float cameraElevationAngle = 0.2;
     
-   fragColor = FragColor; 
+    silhouetteSmoothness = 1.0; silhouettePower = 3.0; interiorIntensity = 0.9; interiorPower = 3.0;
+    vec3 cameraPosition = vec3(-15.0 * cos(iTime) * cos(cameraElevationAngle), 15.0 * sin(iTime) * cos(cameraElevationAngle), 15.0 * sin(cameraElevationAngle));
+    mat3 viewMatrix = lookAt(cameraPosition, vec3(0.0), 5.0);
+    
+    drawObject(cameraPosition, viewMatrix, uv);
+    fragColor = accumulatedColor;
 }
